@@ -16697,7 +16697,8 @@ c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       subroutine sophiaevent(nature,Ein,OutPart,OutPartType,NbOut
-     &     Part,z_particle,bgFlag,Zmax_IRB,idatamax,en_data,flux_data)
+     &     Part,z_particle,bgFlag,Zmax_IRB,idatamax,en_data,flux_data,
+     &     photonEnergy_eV)
 
 c**********************************
 c nature, Ein = input nature and energy of the nucleon
@@ -16750,12 +16751,13 @@ c**********************************
       integer bgFlag
       double precision Ein,Pp
       double precision z_particle
+      double precision photonEnergy_eV
       double precision OutPart(2000,5)
       integer OutPartType(2000)      
       integer NbOutPart
+      double precision epseV
 
       double precision epsmin,epsmax
-
       DATA pi /3.141593D0/
 
 
@@ -16802,6 +16804,8 @@ c     Limits are defined by the provided background
          call sample_ir_eps2(epseV,epsmin,epsmax
      $        ,idatamax,en_data,flux_data)
 
+      else if (bgflag.eq.4) then
+        epseV =  photonEnergy_eV
 cc
 
       else

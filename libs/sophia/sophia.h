@@ -4,7 +4,7 @@
 extern "C" {
 void sophiaevent_(int& channel, double& inputenergy, double momentum[][2000],
 		int id[], int& n, double& redshift, int& photonbackground, double& maxz,
-		int&, double[], double[]);
+		int&, double[], double[], double& photonEnergy_eV);
 }
 
 /*
@@ -28,10 +28,12 @@ void sophiaevent_(int& channel, double& inputenergy, double momentum[][2000],
  - redshift
  - photon background flag: 1 -> CMB, 2 -> IRB Kneiske
  (Primack et al. (1999) IRB is outcommented in sophia_interface.f on line 16320
+   4 the energy of the photon is rovided from outside via photonenergy_eV	
  - maximum redshift: the photon density of IRB is null above this redshift
  - dummy1
  - dummy2
  - dummy3
+ - photonEnergy_eV energy of the photon for background 4 
  */
 
 #endif
