@@ -122,14 +122,14 @@ double Random::randFisher(double kappa) {
 	return acos(1. + 1. / kappa * log(1 - rand() * (1 - exp(-2 * kappa))));
 }
 
-size_t Random::randBin(const std::vector<float> &cdf) {
-	std::vector<float>::const_iterator it = std::lower_bound(cdf.begin(),
+size_t Random::randBin(const std::vector<float> &cdf, size_t skip) {
+	std::vector<float>::const_iterator it = std::lower_bound(cdf.begin() + skip,
 			cdf.end(), rand() * cdf.back());
 	return it - cdf.begin();
 }
 
-size_t Random::randBin(const std::vector<double> &cdf) {
-	std::vector<double>::const_iterator it = std::lower_bound(cdf.begin(),
+size_t Random::randBin(const std::vector<double> &cdf, size_t skip) {
+	std::vector<double>::const_iterator it = std::lower_bound(cdf.begin() + skip,
 			cdf.end(), rand() * cdf.back());
 	return it - cdf.begin();
 }

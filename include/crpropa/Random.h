@@ -141,8 +141,8 @@ public:
 	double randFisher(double k);
 
 	/// Draw a random bin from a (unnormalized) cumulative distribution function, without leading zero. 
-	size_t randBin(const std::vector<float> &cdf);
-	size_t randBin(const std::vector<double> &cdf);
+	size_t randBin(const std::vector<float> &cdf, size_t skip = 0);
+	size_t randBin(const std::vector<double> &cdf, size_t skip = 0);
 
 	/// Random point on a unit-sphere
 	Vector3d randVector();

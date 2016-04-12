@@ -15,12 +15,13 @@
 namespace crpropa {
 
 PhotoPionProduction::PhotoPionProduction(PhotonField field, bool photons,
-		bool neutrinos, bool antiNucleons, double l) {
+		bool neutrinos, bool antiNucleons, double l, bool tabulatedPhotonSpectrum ) {
 	photonField = field;
 	havePhotons = photons;
 	haveNeutrinos = neutrinos;
 	haveAntiNucleons = antiNucleons;
 	doRedshiftDependent = false;
+	useTabulatedPhotonSpectrum = tabulatedPhotonSpectrum;
 	limit = l;
 	init();
 }
@@ -46,47 +47,83 @@ void PhotoPionProduction::setDoRedshiftDependent(bool b) {
 	doRedshiftDependent = b;
 }
 
+void PhotoPionProduction::setUseTabulatedPhotonSpectrum(bool b) {
+	useTabulatedPhotonSpectrum = b;
+}
+
 void PhotoPionProduction::setLimit(double l) {
 	limit = l;
 }
 
+
+void PhotoPionProduction::loadPhotonBackgroundDistribution(std::string filename)
+{
+	std::ifstream infile(filename.c_str());
+	if (!infile.good())
+		throw std::runtime_error(
+				"PhotoPionProduction: could not open file " + filename);
+
+		tabPhotonSpectrum.clear();
+		tabPhotonSpectrumEnergy.clear();
+		while (infile.good()) {
+		if (infile.peek() != '#') {
+			double E, N;
+			infile >> E >> N;
+			tabPhotonSpectrum.push_back(N);
+			// Energy in eV
+			tabPhotonSpectrumEnergy.push_back(E / eV);
+		}
+		infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
+
+	infile.close();
+}
+
 void PhotoPionProduction::init() {
+
 	switch (photonField) {
 	case CMB:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: CMB");
 		init(getDataPath("ppp_CMB.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_CMB.txt"));
 		break;
 	case IRB: // default: Kneiske '04 IRB model
 	case IRB_Kneiske04:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: IRB (Kneiske 2004)");
 		init(getDataPath("ppp_IRB_Kneiske04.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_IRB_Kneiske04.txt"));
 		break;
 	case IRB_Stecker05:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: IRB (Stecker 2005)");
 		init(getDataPath("ppp_IRB_Stecker05.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_IRB_Stecker05.txt"));
 		break;
 	case IRB_Franceschini08:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: IRB (Franceschini 2008)");
 		init(getDataPath("ppp_IRB_Franceschini08.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_IRB_Franceschini08.txt"));
 		break;
 	case IRB_Finke10:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: IRB (Finke 2010)");
 		init(getDataPath("ppp_IRB_Finke10.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_IRB_Finke10.txt"));
 		break;
 	case IRB_Dominguez11:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: IRB (Dominguez 2011)");
 		init(getDataPath("ppp_IRB_Dominguez11.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_IRB_Dominguez11.txt"));
 		break;
 	case IRB_Gilmore12:
 		doRedshiftDependent = false;
 		setDescription("PhotoPionProduction: IRB (Gilmore 2012)");
 		init(getDataPath("ppp_IRB_Gilmore12.txt"));
+		loadPhotonBackgroundDistribution(getDataPath("PhotonDistribution_IRB_Gilmore12.txt"));
 		break;
 	case IRB_withRedshift_Kneiske04:
 		doRedshiftDependent = true;
@@ -275,24 +312,35 @@ void PhotoPionProduction::performInteraction(Candidate *candidate,
 	int particleList[2000]; // particle id list
 	int nParticles; // number of outgoing particles
 	double maxRedshift = 100; // IR photon density is zero above this redshift
-	int dummy1; // not needed
-	double dummy2[2]; // not needed
-	double dummy3; // not needed
-	int dummy4; // not needed
-	int background = (photonField == CMB) ? 1 : 2; // photon background: 1 for CMB, 2 for Kneiske IRB
+	int background = (photonField == CMB) ? 1 : 2; // SOPHIA background codes, 2 == Kneiske IRB. Not used for non-redshift scaled backgrounds
+	double photonEnergy_eV = -1;
 
 	// check if below SOPHIA's energy threshold
 	double E_threshold = (photonField == CMB) ? 3.72e18 * eV : 5.83e15 * eV;
 	if (EpA < E_threshold)
 		return;
 
-#pragma omp critical
-	{
-		sophiaevent_(nature, Ein, momentaList, particleList, nParticles, z,
-				background, maxRedshift, dummy1, dummy2, dummy2, dummy3, &dummy4);
-	}
 
 	Random &random = Random::instance();
+	if (useTabulatedPhotonSpectrum && !doRedshiftDependent)
+	{	// set energy of the photon for the interaction, currently only for non
+		// redshift dependent backgrounds
+		// Doing this for redshift dependent backgrounds would require 
+		background = 3;
+	}
+		
+	int sizeOfPhotonBackground = tabPhotonSpectrum.size();
+	const double *energyArray = &tabPhotonSpectrumEnergy[0];
+	const double *densityArray = &tabPhotonSpectrum[0];
+	int interactionType;
+
+	#pragma omp critical
+	{
+		sophiaevent_(nature, Ein, momentaList, particleList, nParticles, z,
+				background, maxRedshift, sizeOfPhotonBackground, energyArray,
+				densityArray , photonEnergy_eV , &interactionType);
+	}
+
 	Vector3d pos = random.randomInterpolatedPosition(candidate->previous.getPosition(),candidate->current.getPosition());
 	for (int i = 0; i < nParticles; i++) { // loop over out-going particles
 		double Eout = momentaList[3][i] * GeV; // only the energy is used; could be changed for more detail
