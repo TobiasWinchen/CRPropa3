@@ -278,6 +278,7 @@ void PhotoPionProduction::performInteraction(Candidate *candidate,
 	int dummy1; // not needed
 	double dummy2[2]; // not needed
 	double dummy3; // not needed
+	int dummy4; // not needed
 	int background = (photonField == CMB) ? 1 : 2; // photon background: 1 for CMB, 2 for Kneiske IRB
 
 	// check if below SOPHIA's energy threshold
@@ -288,7 +289,7 @@ void PhotoPionProduction::performInteraction(Candidate *candidate,
 #pragma omp critical
 	{
 		sophiaevent_(nature, Ein, momentaList, particleList, nParticles, z,
-				background, maxRedshift, dummy1, dummy2, dummy2, dummy3);
+				background, maxRedshift, dummy1, dummy2, dummy2, dummy3, &dummy4);
 	}
 
 	Random &random = Random::instance();

@@ -16698,7 +16698,7 @@ cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       subroutine sophiaevent(nature,Ein,OutPart,OutPartType,NbOut
      &     Part,z_particle,bgFlag,Zmax_IRB,idatamax,en_data,flux_data,
-     &     photonEnergy_eV)
+     &     photonEnergy_eV, Imode)
 
 c**********************************
 c nature, Ein = input nature and energy of the nucleon
@@ -16756,9 +16756,11 @@ c**********************************
       integer OutPartType(2000)      
       integer NbOutPart
       double precision epseV
+      integer Imode
 
       double precision epsmin,epsmax
       DATA pi /3.141593D0/
+
 
 
 cc 15.09.2009
