@@ -133,12 +133,20 @@ class testVector3(unittest.TestCase):
     v.x = 23.
     self.assertEqual(v.x, 23.)
 
-  def testArrayInterface(self):
+  def testArrayInterface_crp2numpy(self):
     if numpy_available:
       v = crp.Vector3d(1., 2., 3.)
       self.assertEqual(2., np.mean(v) )
       x = np.ones(3)
       self.assertEqual(6., sum(v * x) )
+
+  def testSettingOfVectorFromArray(self):
+    if numpy_available:
+      v = crp.Vector3d(np.array([1., 2., 3.]))
+      self.assertEqual(v.x, 1.)
+      self.assertEqual(v.y, 2.)
+      self.assertEqual(v.z, 3.)
+
 
   def testRepr(self):
     v = crp.Vector3d(1., 2., 3.)
