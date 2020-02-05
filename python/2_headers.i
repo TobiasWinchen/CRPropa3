@@ -89,7 +89,7 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
   {
     npy_intp shape[1];
     shape[0] = 3;
-    PyObject *ro;
+    PyObject *ro = Py_None;
     if (sizeof($self->data[0]) == NPY_SIZEOF_FLOAT)
     {
       ro = PyArray_SimpleNewFromData(1, shape, NPY_FLOAT, $self->data);
@@ -97,6 +97,7 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
     else if (sizeof($self->data[0]) == NPY_SIZEOF_DOUBLE)
     {
       ro = PyArray_SimpleNewFromData(1, shape, NPY_DOUBLE, $self->data);
+      Py_INCREF($self);
     }
     else
     {
