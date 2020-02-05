@@ -97,6 +97,7 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
     else if (sizeof($self->data[0]) == NPY_SIZEOF_DOUBLE)
     {
       ro = PyArray_SimpleNewFromData(1, shape, NPY_DOUBLE, $self->data);
+      Py_INCREF($self);
     }
     else
     {
