@@ -97,11 +97,17 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
     else if (sizeof($self->data[0]) == NPY_SIZEOF_DOUBLE)
     {
       ro = PyArray_SimpleNewFromData(1, shape, NPY_DOUBLE, $self->data);
-      Py_INCREF($self);
     }
     else
     {
       KISS_LOG_ERROR << "crpropa::Vector3 has fixed size of 3 elements!";
+      return Py_None;
+    }
+    // Set base object for array
+    if (!PyArray_SetBaseObject((PyArrayObject *) ro, SWIG_This()))
+    {
+      KISS_LOG_ERROR << "Cannot set Vector3 as base object of numpy array";
+      return Py_None;
     }
 
     return ro;
